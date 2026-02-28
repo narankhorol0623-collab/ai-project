@@ -70,7 +70,29 @@ export function CaptureImage() {
     setCaption(null);
 
     try {
-      const base64Image = image.split(",")[1];
+      const response = await fetch("/api/caption", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image,
+          prompt: "Энэ зургийн тайлбарыг гаргаж өг",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API error:", response.status, errorText);
+        setCaption("Failed to generate caption.");
+        return;
+      }
+
+      const data = await response.json();
+
+      setCaption(data.output);
+
+      return data.caption;
     } catch (error) {
       console.error(error);
       setCaption("An error occurred.");

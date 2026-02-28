@@ -32,7 +32,6 @@ export const ChatComponent = () => {
   const toggleChat = () => setIsOpen(!isOpen);
 
   useEffect(() => {
-    // Scroll to bottom on new message
     const current = chatContainerRef.current as any;
     if (current) {
       current.scrollTop = current.scrollHeight;
@@ -53,6 +52,22 @@ export const ChatComponent = () => {
     setIsLoading(true);
 
     try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1-mini",
+        messages: updatedMessages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        max_tokens: 500,
+      });
+
+      const assistantMessage = response.choices[0].message.content;
+      setMessages((updatedMessages) => {
+        return [
+          ...updatedMessages,
+          { role: "assistant", content: String(assistantMessage) },
+        ];
+      });
     } catch (err) {
       console.error("OpenAI API Error:", err);
       setMessages((prev) => [
