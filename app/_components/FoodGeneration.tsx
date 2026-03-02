@@ -29,19 +29,49 @@ export const FoodGeneration = () => {
     try {
       const response = await fetch("/api/generate-image", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt }),
+
+        body: JSON.stringify({
+          prompt,
+        }),
       });
 
+      const generatedImage = await response.json();
+
+      const { image } = generatedImage;
+
+      const ingredients = await fetch("/api/extract", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          prompt,
+        }),
+      });
+
+      const extractedIngredients = await ingredients.json();
+
+      console.log(extractedIngredients);
+
       if (!response.ok) {
-        throw new Error("Failed!!!");
+        throw new Error(generatedImage.error || "error");
       }
 
-      const data = await response.json();
-      setResultImage(data.image);
-      setExtractedInfo(data.extractedInfo);
+      if (generatedImage.image) {
+        setResultImage(generatedImage.image);
+      }
+
+      if (extractedIngredients) {
+        setExtractedInfo(
+          extractedIngredients.split(",").map((item: string) => item.trim()),
+        );
+      }
     } catch (error) {
       console.error("Error:", error);
       setError("Something went wrong. Please try again.");
